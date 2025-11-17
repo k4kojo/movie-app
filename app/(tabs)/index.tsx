@@ -1,8 +1,10 @@
 import MovieCard from "@/components/MovieCard";
 import SearchBar from "@/components/SearchBar";
+import TrendingCard from "@/components/TrendingCard";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { fetchMovies } from "@/services/api";
+import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 import { useRouter } from "expo-router";
 import {
@@ -16,6 +18,12 @@ import {
 
 export default function Index() {
   const router = useRouter();
+
+  const {
+    data: trendingMovies,
+    loading: trendingLoading,
+    error: trendingError,
+  } = useFetch(getTrendingMovies);
 
   const {
     data: movies,
@@ -37,10 +45,10 @@ export default function Index() {
       >
         <Image source={icons.logo} className="w-12 h-10 mt-20 mb-5 mx-auto" />
 
-        {moviesLoading ? (
+        {moviesLoading || trendingLoading ? (
           <ActivityIndicator size="large" color="#AB8BFF" className="mt-10" />
-        ) : moviesError ? (
-          <Text>Error: {moviesError.message}</Text>
+        ) : moviesError || trendingError ? (
+          <Text>Error: {moviesError?.message || trendingError?.message}</Text>
         ) : (
           <View className="flex-1 mt-5">
             <SearchBar
@@ -49,6 +57,31 @@ export default function Index() {
               }}
               placeholder="Search movies or TV shows"
             />
+
+            {trendingMovies && (
+              <View className="mt-10">
+                <Text className="text-lg text-white font-bold mb-3">
+                  Trending Movies
+                </Text>
+
+                <FlatList
+                  data={trendingMovies}
+                  renderItem={({ item, index }) => (
+                    <TrendingCard movie={item} index={index} />
+                  )}
+                  keyExtractor={(item) => item.movie_id.toString()}
+                  horizontal
+                  ItemSeparatorComponent={() => {
+                    return <View className="w-4" />;
+                  }}
+                  showsHorizontalScrollIndicator={false}
+                  className="mb-5"
+                  contentContainerStyle={{
+                    paddingRight: 5,
+                  }}
+                />
+              </View>
+            )}
 
             <>
               <Text className="text-lg text-white font-bold mt-5 mb-3">
