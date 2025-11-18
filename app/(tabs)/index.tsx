@@ -3,7 +3,7 @@ import SearchBar from "@/components/SearchBar";
 import TrendingCard from "@/components/TrendingCard";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
-import { fetchMovies } from "@/services/api";
+import { fetchPopularMovies } from "@/services/api";
 import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 import { useRouter } from "expo-router";
@@ -30,7 +30,7 @@ export default function Index() {
     loading: moviesLoading,
     error: moviesError,
   } = useFetch(() =>
-    fetchMovies({
+    fetchPopularMovies({
       query: "",
     })
   );
@@ -85,7 +85,7 @@ export default function Index() {
 
             <>
               <Text className="text-lg text-white font-bold mt-5 mb-3">
-                Latest Movies
+                Popular Movies
               </Text>
 
               <FlatList

@@ -1,8 +1,13 @@
 import MovieCard from "@/components/MovieCard";
 import SearchBar from "@/components/SearchBar";
+import SmallMovieCard from "@/components/SmallMovieCard";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
-import { fetchMovies } from "@/services/api";
+import {
+  fetchPopularMovies,
+  fetchTopRatedMovies,
+  fetchUpcomingMovies,
+} from "@/services/api";
 import { updateSearchCount } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 import React, { useEffect, useState } from "react";
@@ -18,16 +23,22 @@ const Search = () => {
     refetch: loadMovies,
     reset,
   } = useFetch(() =>
-    fetchMovies({
+    fetchPopularMovies({
       query: searchQuery,
     })
+  );
+
+  const { data: topRated, error: topRatedError } = useFetch(() =>
+    fetchTopRatedMovies({ page: 1 })
+  );
+
+  const { data: upcoming, error: upcomingError } = useFetch(() =>
+    fetchUpcomingMovies({ page: 1 })
   );
 
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
-        // Use the fresh results returned by `loadMovies` (useFetch now returns the
-        // fetched result). Falling back to `movies` state if undefined.
         await loadMovies();
       } else {
         reset();
@@ -72,6 +83,59 @@ const Search = () => {
               />
             </View>
 
+            {/* Show Top Rated & Upcoming when user hasn't searched yet */}
+            {!searchQuery.trim() && (
+              <>
+                {topRated && (
+                  <View className="mt-6">
+                    <Text className="text-lg text-white font-bold mb-3">
+                      Top Rated
+                    </Text>
+
+                    <FlatList
+                      data={topRated}
+                      renderItem={({ item }) => (
+                        <SmallMovieCard
+                          id={item.id}
+                          title={item.title}
+                          poster_path={item.poster_path}
+                        />
+                      )}
+                      keyExtractor={(item) => item.id.toString()}
+                      horizontal
+                      ItemSeparatorComponent={() => <View className="w-4" />}
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{ paddingRight: 8 }}
+                    />
+                  </View>
+                )}
+
+                {upcoming && (
+                  <View className="mt-6">
+                    <Text className="text-lg text-white font-bold mb-3">
+                      Upcoming
+                    </Text>
+
+                    <FlatList
+                      data={upcoming}
+                      renderItem={({ item }) => (
+                        <SmallMovieCard
+                          id={item.id}
+                          title={item.title}
+                          poster_path={item.poster_path}
+                        />
+                      )}
+                      keyExtractor={(item) => item.id.toString()}
+                      horizontal
+                      ItemSeparatorComponent={() => <View className="w-4" />}
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{ paddingRight: 8 }}
+                    />
+                  </View>
+                )}
+              </>
+            )}
+
             {moviesLoading && (
               <ActivityIndicator
                 size="large"
@@ -96,15 +160,6 @@ const Search = () => {
                 </Text>
               )}
           </>
-        }
-        ListEmptyComponent={
-          !moviesLoading && !moviesError ? (
-            <View className="mt-10 px-5">
-              <Text className="text-center text-gray-500">
-                {searchQuery.trim() ? "No movies found" : "Search for a movie"}
-              </Text>
-            </View>
-          ) : null
         }
       />
     </View>
